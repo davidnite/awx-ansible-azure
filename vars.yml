@@ -1,0 +1,19 @@
+---
+resource_group: ansibleDemo
+location: southcentralus
+vm_name: ansibleDemoVm
+admin_username: ansible
+admin_password: Password123!!
+vnet_name: vnet
+subnet_name: subnet
+vm_public_ip_name: ansibledemo11152018
+awx_password: awxpass
+subscription_id: sub_id
+client_id: client_id
+client_secret: client_secret
+tenant_id: tenant_id
+scm_user: user@email.com
+scm_pass: scm_password
+domain_name: domain.name
+domain_admin: adminuser
+domain_password: adminpass

@@ -1,0 +1,62 @@
+- name: Register server
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Getting Public IP
+      azure_rm_publicipaddress_facts:
+        resource_group: "{{ resource_group }}"
+        name: '{{ vm_public_ip_name }}'
+      register: pip_output
+
+    # - name: Dump Public IP information
+    #   debug:
+    #     var: pip_output
+
+    - name: Getting Private IP
+      azure_rm_networkinterface_facts:
+        resource_group: "{{ resource_group }}"
+        name: '{{ vm_name }}-nic'
+      register: nic_output
+
+    # - name: Dump Private IP information
+    #   debug:
+    #     var: nic_output
+
+    - name: Adding public IP to hosts
+      add_host:
+        hostname: "{{ pip_output.ansible_facts.azure_publicipaddresses[0].properties.ipAddress }}"
+        ansible_user: "{{ admin_username }}"
+        groups: awx
+    
+- name: Install Software
+  hosts: awx
+  become: true
+  tasks:
+    - name: Install updates
+      apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 86400
+
+    - name: Copy installation script
+      copy:
+        src: install.sh
+        dest: /tmp/install.sh
+        mode: '+700'
+
+    - name: Run installation script
+      shell: /tmp/install.sh
+      args:
+        warn: no
+
+    - name: Render configuration script
+      template:
+        src: config.conf.j2
+        dest: /tmp/config.sh
+        mode: '+700'
+   
+    - name: Run configuration script
+      shell: /tmp/config.sh
+      args:
+        warn: no

@@ -1,0 +1,93 @@
+- name: AWX Infrastructure
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: First make sure resource group is empty
+      azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        location: "{{ location }}"
+        force: yes
+        state: absent
+
+    - name: Create a new resource group
+      azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        location: "{{ location }}"
+
+    - name: Create Virtual Network
+      azure_rm_virtualnetwork:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vnet_name }}"
+        address_prefixes: "10.10.0.0/16"
+
+    - name: Create Subnet
+      azure_rm_subnet:
+        resource_group: "{{ resource_group }}"
+        name: "{{ subnet_name }}"
+        address_prefix: "10.10.0.0/24"
+        virtual_network: "{{ vnet_name }}"
+      register: subnet_output
+
+    - name: Create a public IP address 
+      azure_rm_publicipaddress:
+        resource_group: "{{ resource_group }}"  
+        allocation_method: Dynamic 
+        name: "{{ vm_public_ip_name }}" 
+        domain_name_label: "{{ vm_public_ip_name }}"
+
+    - name: Create VM NIC
+      azure_rm_networkinterface:
+        name: '{{ vm_name }}-nic'
+        os_type: Linux
+        resource_group: "{{ resource_group }}"
+        security_group_name: '{{ vm_name }}-nsg'
+        subnet_name: "{{ subnet_name }}"
+        virtual_network_name: "{{ vnet_name }}"
+        ip_configurations:
+          - name: "{{ vm_name }}"
+            public_ip_address_name: "{{ vm_public_ip_name }}"
+    
+    - name: Create VM
+      azure_rm_virtualmachine:
+        admin_username: "{{ admin_username }}"
+        location: "{{ location }}"
+        managed_disk_type: Standard_LRS
+        name: "{{ vm_name }}"
+        network_interface_names: '{{ vm_name }}-nic'
+        os_type: Linux
+        resource_group: "{{ resource_group }}"
+        short_hostname: "{{ vm_name }}"
+        vm_size: Standard_DS3_v2
+        ssh_password_enabled: false
+        ssh_public_keys:
+          - path: /home/{{ admin_username }}/.ssh/authorized_keys
+            key_data: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+        image:
+          offer: OpenLogic
+          publisher: CentOS
+          sku: '7.4'
+          version: 7.4.20180704
+        tags: 
+          Role: Automation
+          Application: AWX
+
+    - name: Allow HTTP traffic
+      azure_rm_securitygroup:
+        resource_group: "{{ resource_group }}"
+        name: '{{ vm_name }}-nsg'
+        rules:
+          - name: AllowHttp
+            protocol: Tcp
+            source_address_prefix: '*'
+            destination_port_range: 80
+            access: Allow
+            priority: 110
+            direction: Inbound
+          - name: AllowHttps
+            protocol: Tcp
+            source_address_prefix: '*'
+            destination_port_range: 443
+            access: Allow
+            priority: 111
+            direction: Inbound
