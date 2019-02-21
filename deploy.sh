@@ -8,6 +8,8 @@ else
     ssh-keygen -t rsa -q -P "" -f $HOME/.ssh/id_rsa
 fi
 
+export ANSIBLE_HOST_KEY_CHECKING=False
+
 # AWX Azure Infrastructure Playbook
 ansible-playbook awx_azure_infrastructure.yml --extra-vars "@vars.yml"
 
