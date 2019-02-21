@@ -65,8 +65,8 @@
           - path: /home/{{ admin_username }}/.ssh/authorized_keys
             key_data: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
         image:
-          offer: OpenLogic
-          publisher: CentOS
+          offer: CentOS
+          publisher: OpenLogic
           sku: '7.4'
           version: 7.4.20180704
         tags: 
