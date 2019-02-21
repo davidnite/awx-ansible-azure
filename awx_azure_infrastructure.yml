@@ -1,3 +1,4 @@
+---
 - name: AWX Infrastructure
   hosts: localhost
   connection: local

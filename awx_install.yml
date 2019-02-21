@@ -1,0 +1,14 @@
+---
+- name: Install AWX Software
+  hosts: awx
+  gather_facts: no
+  become: true
+  tasks:
+    - name: Install AWX
+      shell: ansible-playbook -i inventory install.yml
+      args:
+        chdir: '/home/{{ admin_username }}/awx/installer/'
+      
+    - name: Wait for AWX database migration to complete
+      pause:
+        minutes: 5

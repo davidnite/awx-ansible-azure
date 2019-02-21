@@ -17,3 +17,5 @@ scm_pass: scm_password
 domain_name: domain.name
 domain_admin: adminuser
 domain_password: adminpass
+dc1: dc-1
+dns_server: 8.8.8.8

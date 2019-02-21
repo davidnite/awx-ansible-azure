@@ -1,0 +1,129 @@
+---
+- name: Register server
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Getting Public IP
+      azure_rm_publicipaddress_facts:
+        resource_group: "{{ resource_group }}"
+        name: '{{ vm_public_ip_name }}'
+      register: pip_output
+
+    # - name: Dump Public IP information
+    #   debug:
+    #     var: pip_output
+
+    - name: Getting Private IP
+      azure_rm_networkinterface_facts:
+        resource_group: "{{ resource_group }}"
+        name: '{{ vm_name }}-nic'
+      register: nic_output
+
+    # - name: Dump Private IP information
+    #   debug:
+    #     var: nic_output
+
+    - name: Adding public IP to hosts
+      add_host:
+        hostname: "{{ pip_output.ansible_facts.azure_publicipaddresses[0].properties.ipAddress }}"
+        ansible_user: "{{ admin_username }}"
+        groups: awx
+    
+- name: Prep for AWX install
+  hosts: awx
+  gather_facts: no
+  become: true
+  tasks:
+    - name: Upgrade Packages
+      yum:
+        name: '*'
+        state: latest
+        update_cache: yes
+
+    - name: Install Docker prereqs
+      yum: 
+        name: "{{ packages }}"
+      vars:
+        packages:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+
+    - name: Add Docker repository
+      shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+    - name: Upgrade Packages
+      yum:
+        name: '*'
+        state: latest
+        update_cache: yes
+
+    - name: Install packages
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+          - epel-release
+          - ansible
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - git
+    
+    - name: Install Pip
+      yum:
+        name: python-pip
+        update_cache: yes
+
+    - name: Install Pip Packages
+      pip:
+        name:
+          - docker-py
+          - ansible-tower-cli
+
+    - name: Start docker service
+      service:
+        name: docker
+        state: started
+
+    - name: Create the AWX projects directory
+      file:
+        path: /var/lib/awx/projects
+        state: directory
+        mode: 0777
+
+    - name: Clone the AWX repo
+      git:
+        repo: 'https://github.com/ansible/awx.git'
+        dest: '/home/{{ admin_username }}/awx'
+        force: yes
+
+    - name: Clone the AWX logos repo
+      git:
+        repo: 'https://github.com/ansible/awx-logos'
+        dest: '/home/{{ admin_username }}/awx-logos'
+
+    - name: Set inventory config to build images locally
+      lineinfile:
+        path: awx/installer/inventory
+        regexp: '^dockerhub_base=ansible'
+        line: '# dockerhub_base=ansible'
+
+    - name: Set inventory config to store postgres in srv
+      lineinfile:
+        path: awx/installer/inventory
+        regexp: '^postgres_data_dir=/tmp/pgdocker'
+        line: 'postgres_data_dir=/srv/pgdocker'
+        
+    - name: Set inventory config to use official logos
+      lineinfile:
+        path: awx/installer/inventory
+        regexp: '^awx_official=false'
+        line: 'awx_official=true'
+
+    - name: Set Azure inventory script to use private IP addresses
+      lineinfile:
+        path: awx/awx/plugins/inventory/azure_rm.py
+        regexp: '^[ \t]+self.use_private_ip = False'
+        line: '        self.use_private_ip = True'
