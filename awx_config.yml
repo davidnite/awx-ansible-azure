@@ -36,7 +36,6 @@
     - name: Create the SCM Credential
       shell: tower-cli credential create --credential-type="Source Control" --organization=Default --name=SCM --inputs='{"username":"{{ scm_user }}", "password":"{{ scm_pass }}"}' --fail-on-found
 
-
     - name: Create a domain WinRM Credential
       shell: tower-cli credential create --credential-type="Machine" --organization=Default --name=WinRM --inputs='{"username":"{{ domain_admin }}@{{ domain_name | upper }}", "password":"{{ domain_password }}"}' --fail-on-found
 
