@@ -35,6 +35,17 @@
   gather_facts: no
   become: true
   tasks:
+    - name: Render resolv.conf file
+      template:
+        src: files/resolv.conf.j2
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Make resolv.conf immutable
+      command: chattr +i /etc/resolv.conf
+      
     - name: Upgrade Packages
       yum:
         name: '*'
@@ -86,6 +97,11 @@
       service:
         name: docker
         state: started
+
+    - name: Create the postgres directory
+      file:
+        path: /pgdocker
+        state: directory
 
     - name: Create the AWX projects directory
       file:
