@@ -6,7 +6,7 @@ vm_name: awxDemo
 admin_username: ansible
 admin_password: Password123!!
 vnet_name: awxDemo
-subnet_name: awxDemo
+subnet_name: awxdemo
 vm_public_ip_name: awxDemo11223344
 
 # Variables below are only used for automatic configuration of AWX (awx-config.yml)
