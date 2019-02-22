@@ -1,0 +1,45 @@
+---
+- name: Register server
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Getting Public IP
+      azure_rm_publicipaddress_facts:
+        resource_group: "{{ resource_group }}"
+        name: '{{ vm_public_ip_name }}'
+      register: pip_output
+
+    - name: Adding public IP to hosts
+      add_host:
+        hostname: "{{ pip_output.ansible_facts.azure_publicipaddresses[0].properties.ipAddress }}"
+        ansible_user: "{{ admin_username }}"
+        groups: awx
+        
+- name: Add Kerberos Support
+  hosts: awx
+  gather_facts: no
+  become: true
+  tasks:
+    - name: Replace task container Dockerfile
+      copy: 
+        src: files/Dockerfile.task.j2
+        dest: '/home/{{ admin_username }}/awx/installer/roles/image_build/templates/Dockerfile.task.j2'
+        mode: 0664
+
+    - name: Replace image_build play
+      copy:
+        src: files/main.yml
+        dest: '/home/{{ admin_username }}/awx/installer/roles/image_build/tasks/main.yml'
+        mode: 0664
+
+    - name: Render resolv.conf file for task container
+      template:
+        src: files/resolv.conf.j2
+        dest: '/home/{{ admin_username }}/awx/installer/roles/image_build/files/resolv.conf'
+        mode: 0664
+    
+    - name: Render krb5.conf file for task container
+      template:
+        src: files/krb5.conf.j2
+        dest: '/home/{{ admin_username }}/awx/installer/roles/image_build/files/krb5.conf'
+        mode: 0664

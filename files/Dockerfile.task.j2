@@ -1,0 +1,12 @@
+FROM {{ web_image }}:{{ awx_version }}
+USER 0
+RUN sudo yum -y remove nginx
+RUN sudo yum -y install gcc python-devel krb5-devel krb5-libs krb5-workstation
+RUN sudo pip install --upgrade pip
+RUN sudo pip install --upgrade cryptography
+RUN sudo pip install pywinrm[kerberos]
+RUN sudo pip install pywinrm[credssp]
+COPY krb5.conf resolv.conf /etc/
+USER 1000
+EXPOSE 8052
+CMD /usr/bin/launch_awx_task.sh

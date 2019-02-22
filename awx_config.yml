@@ -24,7 +24,8 @@
       shell: |
         tower-cli config host http://localhost
         tower-cli config verify_ssl false
-        tower-cli login admin --password password
+        tower-cli config username admin
+        tower-cli config password password
 
     - name: Change AWX default password
       shell: tower-cli user modify --username=admin --password={{ awx_password }}

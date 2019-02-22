@@ -1,0 +1,24 @@
+ default = FILE:/var/log/krb5libs.log
+ kdc = FILE:/var/log/krb5kdc.log
+ admin_server = FILE:/var/log/kadmind.log
+
+[libdefaults]
+ dns_lookup_realm = false
+ ticket_lifetime = 24h
+ renew_lifetime = 7d
+ forwardable = true
+ rdns = false
+ pkinit_anchors = /etc/pki/tls/certs/ca-bundle.crt
+ default_realm = {{ domain_name | upper }}
+ #default_ccache_name = KEYRING:persistent:%{uid}
+
+[realms]
+    {{ domain_name | upper }} = {
+        kdc = {{ dc1 }}.{{ domain_name | lower }}
+        admin_server = {{ dc1 }}.{{ domain_name | lower }}
+    }
+
+[domain_realm]
+    .{{ domain_name | lower }} =
+
+    {{ domain_name | lower }} = {{ domain_name | upper }}

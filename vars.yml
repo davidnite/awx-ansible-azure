@@ -1,4 +1,5 @@
 ---
+# Variables below are used for infrastructure configuration (awx_azure_infrastructure.yml)
 resource_group: awxDemo
 location: southcentralus
 vm_name: awxDemo
@@ -7,6 +8,8 @@ admin_password: Password123!!
 vnet_name: awxDemo
 subnet_name: awxDemo
 vm_public_ip_name: awxDemo11223344
+
+# Variables below are only used for automatic configuration of AWX (awx-config.yml)
 awx_password: awxpass
 subscription_id: sub_id
 client_id: client_id
@@ -17,5 +20,7 @@ scm_pass: scm_password
 domain_name: awxDemo.local
 domain_admin: adminuser
 domain_password: adminpass
+
+# Variables only used for Kerberos configuration (awx_kerberos_config.yml)
 dc1: dc-1
 dns_server: 8.8.8.8
