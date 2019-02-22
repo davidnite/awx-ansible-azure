@@ -119,8 +119,14 @@
     - name: Set inventory config to use official logos
       lineinfile:
         path: awx/installer/inventory
-        regexp: '^awx_official=false'
+        regexp: '^# awx_official=false'
         line: 'awx_official=true'
+
+    - name: Set inventory config to use a volume for project dir
+      lineinfile:
+        path: awx/installer/inventory
+        regexp: '^#project_data_dir=/var/lib/awx/projects'
+        line: 'project_data_dir=/var/lib/awx/projects'
 
     - name: Set Azure inventory script to use private IP addresses
       lineinfile:
