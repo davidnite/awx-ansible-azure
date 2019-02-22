@@ -14,7 +14,7 @@
         hostname: "{{ pip_output.ansible_facts.azure_publicipaddresses[0].properties.ipAddress }}"
         ansible_user: "{{ admin_username }}"
         groups: awx
-        
+
 - name: Install AWX Software
   hosts: awx
   gather_facts: no
