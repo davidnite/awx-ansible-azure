@@ -125,6 +125,12 @@
         path: awx/installer/inventory
         regexp: '^dockerhub_base=ansible'
         line: '# dockerhub_base=ansible'
+        
+    - name: Disable postgres ssl
+      lineinfile:
+        path: awx/installer/inventory
+        regexp: '^#pg_sslmode=require'
+        line: 'pg_sslmode=disable'
 
     - name: Set inventory config to store postgres in srv
       lineinfile:
