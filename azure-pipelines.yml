@@ -10,6 +10,8 @@ steps:
   displayName: 'Copy Ansible files to artifacts'
   inputs:
     SourceFolder:
+    Contents: |
+     **/*.yml
     TargetFolder: '$(build.artifactstagingdirectory)'
 
 - task: PublishBuildArtifacts@1
